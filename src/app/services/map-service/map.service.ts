@@ -62,6 +62,7 @@ export class MapService {
 
 
 
+
     getRecentTweetData(): void {
         const chartData = [];
         const dailyCount = {};
@@ -70,6 +71,7 @@ export class MapService {
             type: 'GET',
             url: 'http://127.0.0.1:5000/recent_tweet',
             dataType: 'text',
+
         }).done(data => {
 
             const tempData = JSON.parse(data);
@@ -95,4 +97,14 @@ export class MapService {
         return this.http.get<HeatMap[]>('http://127.0.0.1:5000/data/recent-temp');
     }
 
+    ClickPointData(lat, lng, radius): void {
+        $.ajax({
+            type: 'POST',
+            url: 'http://127.0.0.1:5000/data/aggregation',
+            dataType: 'text',
+            data: JSON.stringify({lat, lng, radius})
+        }).done(data => {
+            this.ClickPointLoaded.emit(data);
+        });
+    };
 }
