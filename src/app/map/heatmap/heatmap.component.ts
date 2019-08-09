@@ -337,57 +337,6 @@ export class HeatmapComponent implements OnInit {
         }
     }
 
-    clickPointHandler = (data) => {
-        console.log(data);
-
-        const cntTime = [];
-        const cntValue = [];
-        for (const i of data.cnt_tweet) {
-            cntTime.push(i[0]);
-            if (i[1] === null) {
-                cntValue.push(0);
-            } else {
-                cntValue.push(i[1]);
-            }
-        }
-        const tmpTime = [];
-        const tmpValue = [];
-        for (const i of data.tmp) {
-            tmpTime.push(i[0]);
-            tmpValue.push(i[1] - 273.15);
-            // tmpValue.push(Number(i[1] - 273.15).toFixed(2));
-        }
-
-        const soilwTime = [];
-        const soilwValue = [];
-        for (const j of data.soilw) {
-            soilwTime.push(j[0]);
-            soilwValue.push(j[1]);
-            // soilwValue.push(j[1].toFixed(3));
-        }
-
-
-        const chartContents = '<div id="containers" style="width: 600px; height: 300px;">\n' +
-            '    <div id="container" style="width: 300px; height: 150px; margin: 0px; float: left;"></div>\n' +
-            '    <div id="container2" style="width: 300px; height: 150px; margin: 0px; float: right;"></div>\n' +
-            '    <div id="container3" style="width: 300px; height: 150px; margin: 0px; float: left;"></div>\n' +
-            '    <div id="container4" style="width: 300px; height: 150px; margin: 0px;float: right;;"></div>\n' +
-            '</div>';
-
-        this.marker.bindPopup(chartContents).openPopup();
-        HeatmapComponent.drawChart('container', soilwTime, 'Fire event', cntValue, 'fires',
-            'Moisture', soilwValue, 'mm', 'green');
-        // this.drawChart('container2',tmpTime, [1,2,3,4,5,6,7], 'fire',tmpValue, 'Cesius');
-        HeatmapComponent.drawChart('container3', tmpTime, 'Fire event', cntValue, 'fires',
-            'Temperature', tmpValue, 'Cesius', 'red');
-        // this.drawChart('container4',tmpTime, [1,2,3,4,5,6,7], 'fire',soilwValue, 'mm');
-
-        // drawChart([1,2,3,4,5,6,7], [1,2,3,4,5,6,7], [1,2,3,4,5,6,7]);
-        this.marker.getPopup().on('remove', () => {
-            this.map.removeLayer(this.marker);
-        });
-    };
-
     onMapClick(e) {
         function mouseMoveChangeRadius(event) {
             const newRadius = distance(circle._latlng, event.latlng);
@@ -436,7 +385,7 @@ export class HeatmapComponent implements OnInit {
                 this.map.on('mouseup', (event) => {
                     const newRadius = distance(circle._latlng, event.latlng);
                     this.mapService.getClickData(e.latlng.lat, e.latlng.lng, newRadius / 111000, '2019-07-30T15:37:27Z', 7)
-                        .subscribe(this.clickPointHandler);
+                        .subscribe((data) => this.clickPointHandler(data));
                     this.map.dragging.enable();
                     this.map.removeEventListener('mousemove', mouseMoveChangeRadius);
                     setTimeout(() => {
@@ -480,7 +429,7 @@ export class HeatmapComponent implements OnInit {
         this.marker = marker;
         this.isClickboxOccupied = true;
         this.mapService.getClickData(e.latlng.lat, e.latlng.lng, this.pinRadius / 111000, '2019-07-30T15:37:27Z', 7)
-            .subscribe(this.clickPointHandler);
+            .subscribe((data) => this.clickPointHandler(data));
     }
 
     clickPointHandler = (data) => {
@@ -523,7 +472,6 @@ export class HeatmapComponent implements OnInit {
             this.map.removeLayer(this.marker);
         });
     };
-
 
     rangeSelectHandler = (event) => {
         const inRange = (min: number, max: number, target: number) => {
