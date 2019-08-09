@@ -25,7 +25,7 @@ declare let L;
 })
 export class HeatmapComponent implements OnInit {
 
-    private circle;
+    private isClickboxOccupied = false;
 
     private static STATE_LEVEL_ZOOM = 8;
     private static COUNTY_LEVEL_ZOOM = 9;
@@ -194,7 +194,6 @@ export class HeatmapComponent implements OnInit {
 
         // this.map.on('click', event => {
         //     this.marker = new ClickboxLayer(this.mainControl, this.mapService, this.map, event.latlng);
-        //     this.marker.addTo(this.map);
         // });
         this.map.on('click', this.onMapClick, this);
 
@@ -348,6 +347,10 @@ export class HeatmapComponent implements OnInit {
             return 111000 * Math.sqrt(Math.pow(center.lat - pt.lat, 2) + Math.pow(center.lng - pt.lng, 2));
         }
 
+        if (this.isClickboxOccupied) {
+            return;
+        }
+
         const clickIcon = L.icon({
             iconUrl: 'assets/image/pin6.gif',
             iconSize: [26, 30],
@@ -399,6 +402,7 @@ export class HeatmapComponent implements OnInit {
             .on('click', '.leaflet-popup-sticky-button', () => {
                 // Justify current sticky status
                 marker.isSticky = !marker.isSticky;
+                this.isClickboxOccupied = !this.isClickboxOccupied;
                 if (!marker.isSticky) {
                     marker.getPopup().on('remove', () => {
                         group.remove();
@@ -409,16 +413,20 @@ export class HeatmapComponent implements OnInit {
             });
         container.append('You clicked the map at ' + e.latlng.toString());
         marker.bindPopup(container[0], {
-            closeOnClick: false,
+            closeOnClick: true,
             autoClose: true,
         }).openPopup();
 
         // Remove popup fire remove all (default is not sticky)
         marker.getPopup().on('remove', () => {
             group.remove();
+            setTimeout(() => {
+                this.isClickboxOccupied = false;
+            }, 200);
         });
         // TODO: change marker from global var since it only specify one.
         this.marker = marker;
+        this.isClickboxOccupied = true;
         this.mapService.getClickData(e.latlng.lat, e.latlng.lng, this.pinRadius / 111000, '2019-07-30T15:37:27Z', 7)
             .subscribe(this.clickPointHandler);
     }
