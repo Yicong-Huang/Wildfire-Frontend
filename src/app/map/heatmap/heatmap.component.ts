@@ -194,6 +194,7 @@ export class HeatmapComponent implements OnInit {
 
         // this.map.on('click', event => {
         //     this.marker = new ClickboxLayer(this.mainControl, this.mapService, this.map, event.latlng);
+        //     this.marker.addTo(this.map);
         // });
         this.map.on('click', this.onMapClick, this);
 
@@ -336,6 +337,57 @@ export class HeatmapComponent implements OnInit {
         }
     }
 
+    clickPointHandler = (data) => {
+        console.log(data);
+
+        const cntTime = [];
+        const cntValue = [];
+        for (const i of data.cnt_tweet) {
+            cntTime.push(i[0]);
+            if (i[1] === null) {
+                cntValue.push(0);
+            } else {
+                cntValue.push(i[1]);
+            }
+        }
+        const tmpTime = [];
+        const tmpValue = [];
+        for (const i of data.tmp) {
+            tmpTime.push(i[0]);
+            tmpValue.push(i[1] - 273.15);
+            // tmpValue.push(Number(i[1] - 273.15).toFixed(2));
+        }
+
+        const soilwTime = [];
+        const soilwValue = [];
+        for (const j of data.soilw) {
+            soilwTime.push(j[0]);
+            soilwValue.push(j[1]);
+            // soilwValue.push(j[1].toFixed(3));
+        }
+
+
+        const chartContents = '<div id="containers" style="width: 600px; height: 300px;">\n' +
+            '    <div id="container" style="width: 300px; height: 150px; margin: 0px; float: left;"></div>\n' +
+            '    <div id="container2" style="width: 300px; height: 150px; margin: 0px; float: right;"></div>\n' +
+            '    <div id="container3" style="width: 300px; height: 150px; margin: 0px; float: left;"></div>\n' +
+            '    <div id="container4" style="width: 300px; height: 150px; margin: 0px;float: right;;"></div>\n' +
+            '</div>';
+
+        this.marker.bindPopup(chartContents).openPopup();
+        HeatmapComponent.drawChart('container', soilwTime, 'Fire event', cntValue, 'fires',
+            'Moisture', soilwValue, 'mm', 'green');
+        // this.drawChart('container2',tmpTime, [1,2,3,4,5,6,7], 'fire',tmpValue, 'Cesius');
+        HeatmapComponent.drawChart('container3', tmpTime, 'Fire event', cntValue, 'fires',
+            'Temperature', tmpValue, 'Cesius', 'red');
+        // this.drawChart('container4',tmpTime, [1,2,3,4,5,6,7], 'fire',soilwValue, 'mm');
+
+        // drawChart([1,2,3,4,5,6,7], [1,2,3,4,5,6,7], [1,2,3,4,5,6,7]);
+        this.marker.getPopup().on('remove', () => {
+            this.map.removeLayer(this.marker);
+        });
+    };
+
     onMapClick(e) {
         function mouseMoveChangeRadius(event) {
             const newRadius = distance(circle._latlng, event.latlng);
@@ -477,7 +529,6 @@ export class HeatmapComponent implements OnInit {
         const inRange = (min: number, max: number, target: number) => {
             return target < max && target >= min;
         };
-
         // Respond to the input range of temperature from the range selector in side bar
         // var int: always keep the latest input Max/Min temperature
         if (event.high !== undefined) {

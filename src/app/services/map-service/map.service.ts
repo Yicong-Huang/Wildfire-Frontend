@@ -5,9 +5,9 @@ import {map} from 'rxjs/operators';
 import {Tweet} from '../../models/tweet.model';
 import {FirePrediction} from '../../models/firePrediction.model';
 import {Wind} from '../../models/wind.model';
-import {DropBoxItem} from '../../models/dropBox.model';
 import {HeatMap} from '../../models/heatMap.model';
 import {Boundary} from '../../models/boundary.model';
+import {SearchSuggestion} from '../../models/search.suggestion.model';
 
 
 @Injectable({
@@ -16,13 +16,9 @@ import {Boundary} from '../../models/boundary.model';
 export class MapService {
 
     // Declare data events for components to action
-
     temperatureChangeEvent = new EventEmitter();
-    liveTweetCycle: any;
-
 
     constructor(private http: HttpClient) {
-
     }
 
 
@@ -52,22 +48,17 @@ export class MapService {
         }));
     }
 
-    getDropBox(userInput): Observable<DropBoxItem[]> {
+    getDropBox(userInput): Observable<SearchSuggestion[]> {
         // gets auto-completion suggestions
-
-        return this.http.get<DropBoxItem[]>('http://127.0.0.1:5000/dropdownMenu', {params: new HttpParams().set('userInput', userInput)});
-    }
-
-
-    stopLiveTweet(): void {
-        window.clearInterval(this.liveTweetCycle);
+        return this.http.get<SearchSuggestion[]>('http://127.0.0.1:5000/dropdownMenu',
+            {params: new HttpParams().set('userInput', userInput)});
     }
 
 
     getRecentTweetData(): Observable<any> {
 
         return this.http.get('http://127.0.0.1:5000/tweet/recent-tweet');
-    };
+    }
 
     getTemperatureData(): Observable<HeatMap[]> {
         return this.http.get<HeatMap[]>('http://127.0.0.1:5000/data/recent-temp');
