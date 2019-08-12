@@ -343,6 +343,7 @@ export class HeatmapComponent implements OnInit {
             circle.setRadius(newRadius);
         }
 
+        
         function distance(center, pt) {
             return 111000 * Math.sqrt(Math.pow(center.lat - pt.lat, 2) + Math.pow(center.lng - pt.lng, 2));
         }
