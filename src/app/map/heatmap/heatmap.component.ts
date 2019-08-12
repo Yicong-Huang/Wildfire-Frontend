@@ -191,12 +191,6 @@ export class HeatmapComponent implements OnInit {
         this.map.on('zoomend, moveend', this.getBoundary);
 
         //this.map.on('dblclick', this.onMapClick, this);
-        // this.map.on('click', (evt) => {
-        //     if (evt.detail === 3) {
-        //         (ev2) =>this.onMapClick(ev2);
-        //     }
-        // });
-
         this.map.on('mousedown', e => this.onMapHold(e));
 
         this.mapService.getRecentTweetData().subscribe(data => this.fireTweetLayer.recentTweetLoadHandler(data));
@@ -373,7 +367,7 @@ export class HeatmapComponent implements OnInit {
                 localBound.setStyle({color: 'white'});
             })
             .on('mousedown', () => {
-                //this.map.removeEventListener('click');
+                this.map.removeEventListener('click');
                 this.map.dragging.disable();
                 this.map.on('mousemove', mouseMoveChangeRadius);
 
@@ -412,11 +406,21 @@ export class HeatmapComponent implements OnInit {
             autoClose: true,
         }).openPopup();
 
-        // Remove popup fire remove all (default is not sticky)
+
+        // this.map.on('dblclick', () => { group.remove();}, this);
+        this.map.on('mousedown', (e) => judgeDistance(e));
+
+        const that = this;
+        function judgeDistance (event)  {
+           that.map.on('mouseup', (e) => {
+               if (event.latlng.lat === e.latlng.lat && event.latlng.lng === e.latlng.lng) {  group.remove(); }
+           });
+        }
+
         marker.getPopup().on('remove', () => {
             group.remove();
-        });
-        this.map.on('mousedown', () => { group.remove();}, this);
+        }); // Remove popup fire remove all (default is not sticky)
+
         // TODO: change marker from global var since it only specify one.
         this.marker = marker;
         this.mapService.getClickData(e.latlng.lat, e.latlng.lng, this.pinRadius / 111000, '2019-07-30T15:37:27Z', 7)
@@ -430,35 +434,32 @@ export class HeatmapComponent implements OnInit {
         const cntValue = [];
         for (const i of data.cnt_tweet) {
             cntTime.push(i[0]);
-            if (i[1] === null) {
-                cntValue.push(0);
-            } else {
-                cntValue.push(i[1]);
-            }
+            if (i[1] === null) { cntValue.push(0); } else { cntValue.push(i[1]); }
         }
         const tmpTime = [];
         const tmpValue = [];
         for (const i of data.tmp) {
             tmpTime.push(i[0]);
-            tmpValue.push(i[1] - 273.15);
-            // tmpValue.push(Number(i[1] - 273.15).toFixed(2));
+            if (i[1] === null) { tmpValue.push(0); } else { tmpValue.push(i[1] - 273.15);}
         }
 
         const soilwTime = [];
         const soilwValue = [];
-        for (const j of data.soilw) {
-            soilwTime.push(j[0]);
-            soilwValue.push(j[1]);
-            // soilwValue.push(j[1].toFixed(3));
+        for (const i of data.soilw) {
+            soilwTime.push(i[0]);
+            if (i[1] === null) { soilwValue.push(0); } else { soilwValue.push(i[1]);}
         }
 
 
-        const chartContents = '<div id="containers" style="width: 600px; height: 300px;">\n' +
+        const chartContents = '<button href="#Tweet1" class="leaflet-popup-Tweet-button">Tweet</button><br>' +
+            '    <div id="containers" style="width: 600px; height: 300px;">\n' +
             '    <div id="container" style="width: 300px; height: 150px; margin: 0px; float: left;"></div>\n' +
             '    <div id="container2" style="width: 300px; height: 150px; margin: 0px; float: right;"></div>\n' +
             '    <div id="container3" style="width: 300px; height: 150px; margin: 0px; float: left;"></div>\n' +
             '    <div id="container4" style="width: 300px; height: 150px; margin: 0px;float: right;;"></div>\n' +
             '</div>';
+
+        $('#Tweet1').on ('click', ()=>{ alert( $( this ).text() )})
 
         this.marker.bindPopup(chartContents).openPopup();
         HeatmapComponent.drawChart('container', soilwTime, 'Fire event', cntValue, 'fires',
